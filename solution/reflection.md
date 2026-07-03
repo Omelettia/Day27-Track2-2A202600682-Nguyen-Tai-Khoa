@@ -30,13 +30,17 @@ and kept every real skew. Similarly I lowered the corpus-age cut from 49.8 to 46
 (clean tops out ~41d) to catch subtle staleness near 48d with margin.
 
 **What would you change about the cost/coverage tradeoff with another pass?**
-The budget only bites on longer streams: at ~160 events, one-call-per-event
+The budget only bites on the 160-event public stream, where one-call-per-event
 reaches 240 > 220 (a ~1.8-point overage penalty). I chose *not* to throttle,
 because at the observed fault rate (~24%) the expected value of each additional
 call (≈+0.31) still exceeds its marginal overage cost (≈+0.18) — skipping events
-to save credits loses more score than it saves. If the private stream were much
-longer or the fault rate much lower, I'd add budget-aware gating that spends
-remaining credits on the highest-base-rate event types (feature/embedding) and
-drops the cheap, low-yield ones first. Given the class imbalance, the whole
-design deliberately leans toward recall: a caught fault is worth ~4× a false
-alarm, so every threshold is set to the recall-favoring side of the tradeoff.
+to save credits loses more score than it saves. The graded private phase is
+sized so this doesn't arise: 200 events against a 320 budget, and full
+single-pass coverage costs 300, so one call per event is both the
+highest-coverage *and* the cost-safe choice there (zero overage). Only if a
+stream were long enough or the fault rate low enough to force real rationing
+would I add budget-aware gating that spends remaining credits on the
+highest-base-rate event types (feature/embedding) and drops the cheap, low-yield
+ones first. Given the class imbalance, the whole design deliberately leans
+toward recall: a caught fault is worth ~4× a false alarm, so every threshold is
+set to the recall-favoring side of the tradeoff.
